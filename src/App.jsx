@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ADULT_TABS, TEENS_TABS, buildTheme } from "./tokens.js";
+import { buildSchedule } from "./schedule.js";
 
 // ═══════════════════════════════════════════════════════════
 // KARMA33 (formerly Karma28) — Audio-Guided Yoga Practice Engine
@@ -1793,17 +1794,6 @@ const AE={E1:{name:"Brisk Walk",dur:"10 min",emoji:"🚶",steps:["Tall posture c
 const TE={T1:{name:"Hype Warm-Up",dur:"5 min",emoji:"🔥",steps:["Play pump-up song 🎵","Jump on spot × 20","High knees × 30 sec","Arm circles","Neck rolls"],tip:"Music + movement = 3× effort."},T2:{name:"HIIT Circuit",dur:"20 min",emoji:"⚡",steps:["Burpees × 8","Rest 20s","Mountain climbers × 30s","Rest 20s","Jump squats × 12","Rest 20s","Push-ups × 10","Rest 60s × 3"],tip:"20 min HIIT = 45 min cardio."},T3:{name:"Core Challenge",dur:"3 rounds",emoji:"🎯",steps:["Plank 30s","Bicycle crunches 20","Leg raises 15","Russian twists 20","Flutter kicks 30s","Rest 45s"],tip:"Consistency builds the 6-pack."},T4:{name:"Push/Pull",dur:"3 rounds",emoji:"💪",steps:["Push-ups × 12","Squat overhead × 15","Lunges × 12/side","Glute bridge × 20","Rest 60s"],tip:"Compound moves burn all day."},T5:{name:"Cardio Blast",dur:"15 min",emoji:"🏃",steps:["Shadow box 2 min","High knees 30s × 4","Side shuffle 30s/side","Jumping jacks 1 min","Rest 30s × 2"],tip:"Mix it up."},T6:{name:"Flexibility",dur:"10 min",emoji:"🧘",steps:["Hip circles × 10/side","Quad stretch × 30s","Figure-4 glute stretch","Cobra × 3","Child's pose 1 min"],tip:"Flexible = fewer injuries."},T7:{name:"Rest & Recover",dur:"Active rest",emoji:"😎",steps:["Slow walk 20 min","Gentle stretch 10 min","Lots of water 💧","Sleep 8+ hours"],tip:"Recovery = getting stronger."},};
 const AH=[{id:"water",icon:"💧",title:"Morning Water 3L",time:"Before 6 AM"},{id:"yoga6",icon:"🧘",title:"Yoga Before 6 AM",time:"Before 6 AM"},{id:"meal",icon:"🍽️",title:"One Meal at Noon",time:"11:30 AM – 1 PM"},{id:"fast",icon:"🚫",title:"No Food After 6 PM",time:"After 6 PM"}];
 const TH=[{id:"water",icon:"💧",title:"Drink 8 Glasses",time:"All day"},{id:"move",icon:"🏃",title:"Move 30 Min",time:"Anytime"},{id:"noscreen",icon:"📵",title:"Screens Off 10 PM",time:"10 PM"},{id:"sleep",icon:"😴",title:"8 Hours Sleep",time:"10 PM – 6 AM"}];
-
-function buildSchedule(isTeens){
-  const w12=[["E1","E2","E3","E4","E5","E6"],["E7","E8","E9","E10","E11","E12"],["E7","E25","E27"],[],["E1","E2","E3","E4","E5","E6"],["E7","E8","E9","E10","E11","E12"],[]];
-  const w34=[["E7","E13","E14","E15","E16","E17","E26"],["E18","E19","E20","E21","E22","E23"],["E24","E25","E27"],[],["E7","E13","E14","E15","E16","E17","E26"],["E18","E19","E20","E21","E22","E23"],[]];
-  const tw12=[["T1","T3"],["T1","T2","T6"],["T1","T6","T7"],[],["T1","T3"],["T1","T2","T5"],[]];
-  const tw34=[["T1","T2","T4"],["T1","T5","T3","T6"],["T6","T7"],[],["T1","T2","T4"],["T1","T5","T3"],["T7"]];
-  const t12a=["Core Activation","Cardio Flow","Active Recovery","Rest Day","Core Activation","Cardio Flow","Rest Day"];
-  const t34a=["HIIT Blast","Strength+Cardio","Cardio+Mobility","Rest Day","HIIT Blast","Strength+Cardio","Rest Day"];
-  const dn=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-  return Array.from({length:28},(_,i)=>{const d=i%7,w2=Math.floor(i/7)<2;return{day:i+1,dayName:dn[d],type:isTeens?(w2?"Training":"Boss Mode"):(w2?t12a[d]:t34a[d]),phase:w2?"Foundation":"Intensity",week:Math.floor(i/7)+1,exIds:isTeens?(w2?tw12[d]:tw34[d]):(w2?w12[d]:w34[d]),topicId:`T${i+1}`,isRest:d===3||d===6};});
-}
 
 const SK="karma33_v1";
 const load=()=>{try{return JSON.parse(localStorage.getItem(SK))||{};}catch{return{};}};
