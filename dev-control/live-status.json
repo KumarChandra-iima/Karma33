@@ -1,14 +1,14 @@
 {
   "lastUpdated": "2026-06-21",
-  "currentPhase": "Phase 5/6 - module development starting",
-  "activeStream": "Stream A / Infra",
+  "currentPhase": "Phase 5/6 - module development in progress",
+  "activeStream": "Stream A / B foundation work",
   "activeAgent": "Claude Code",
   "openBugs": 1,
   "fixedBugs": 1,
-  "testStatus": "no automated tests yet; manual QA green for local build/preview",
-  "buildStatus": "green (local: npm install, npm run build, npm run preview all pass; production verified live)",
+  "testStatus": "7/7 automated unit tests passing (vitest); manual QA cases tracked in qa/TEST_CASES.md, mostly not yet executed",
+  "buildStatus": "green (npm run build + npm test both pass on feature/qa-scaffold-vitest)",
   "escalations": 0,
-  "latestCommit": "4c12f65",
-  "progressPercent": 15,
-  "notes": "BUG-001 (production 404) fixed and closed with evidence: production verified live at https://karma33.vercel.app/ via dev-control/scripts/verify-deployment.sh (Playwright + Ollama qwen2.5vl:7b vision verdict PASS). Proceeding into Phase 5/6 module work per dev-control/PHASE_PLAN.md."
+  "latestCommit": "a6863fd (on feature/qa-scaffold-vitest, not yet merged to main)",
+  "progressPercent": 22,
+  "notes": "Foundation batch complete on feature/qa-scaffold-vitest: storage key migration, design token extraction, PWA service worker + icons, Vitest/QA scaffold. Awaiting Kumar's go-ahead to merge to main. karma28-vercel/ duplicate removal still blocked pending confirmation. Supabase/AI-coaching/payments/Capacitor not started - blocked on credentials or explicitly deferred."
 }
