@@ -1,0 +1,14 @@
+{
+  "lastUpdated": "2026-06-21",
+  "currentPhase": "Phase 5 - Agent Execution Framework (scaffold fix)",
+  "activeStream": "Stream A / Infra",
+  "activeAgent": "Claude Code",
+  "openBugs": 1,
+  "fixedBugs": 1,
+  "testStatus": "no automated tests yet; manual QA green for local build/preview",
+  "buildStatus": "green (local: npm install, npm run build, npm run preview all pass)",
+  "escalations": 0,
+  "latestCommit": "pending - not yet committed",
+  "progressPercent": 10,
+  "notes": "Root cause of production 404 was a missing root-level Vite scaffold. Scaffold created on feature/phase-5-app-scaffold-vercel-fix, reusing karma28.jsx via src/App.jsx with visible naming updated to Karma33. Vercel preview deployment confirmation is pending (no Vercel CLI access from this environment) before merge to main."
+}
