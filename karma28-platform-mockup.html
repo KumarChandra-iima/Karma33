@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Karma28 — Cross-Platform UI Mockup</title>
+<style>
+  :root{
+    --yoga-a:#FF8C00; --yoga-b:#D026C8;
+    --weight-a:#FF2200; --weight-b:#FFB300;
+    --comm-a:#0055FF; --comm-b:#00AADD;
+    --bg-shell:#0b0710;
+    --ink:#f0f4ff;
+    --ink-soft:rgba(240,244,255,0.62);
+    --ink-ghost:rgba(240,244,255,0.32);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+    background:#100817; color:var(--ink); min-height:100vh;
+  }
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 28px; border-bottom:1px solid rgba(255,255,255,0.08);
+    position:sticky; top:0; background:rgba(16,8,23,0.9); backdrop-filter:blur(10px); z-index:50;
+  }
+  .topbar h1{font-size:18px; margin:0; font-weight:800;}
+  .topbar .tag{font-size:10px; color:var(--ink-ghost); letter-spacing:2px; font-weight:700; margin-top:2px;}
+  .switcher{display:flex; gap:6px; background:rgba(255,255,255,0.06); padding:4px; border-radius:12px; border:1px solid rgba(255,255,255,0.10);}
+  .switcher button{
+    border:none; background:transparent; color:var(--ink-ghost); padding:9px 18px; border-radius:9px;
+    font-size:12px; font-weight:700; cursor:pointer; transition:all .2s;
+  }
+  .switcher button.active{background:linear-gradient(135deg,var(--yoga-a),var(--yoga-b)); color:#fff;}
+  .stage{padding:36px 28px 80px; max-width:1400px; margin:0 auto;}
+  .note{
+    font-size:12px; color:var(--ink-soft); background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.10); border-radius:12px; padding:14px 18px; margin-bottom:28px; line-height:1.6;
+    max-width:760px;
+  }
+  .note b{color:#FFD27A;}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  /* ───────── DESKTOP WEBSITE VIEW ───────── */
+  .desktop-frame{
+    border:1px solid rgba(255,255,255,0.12); border-radius:18px; overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,0.5);
+  }
+  .desktop-app{display:grid; grid-template-columns:220px 1fr 280px; min-height:680px; background:#0a0512;}
+  .d-sidebar{background:rgba(255,255,255,0.03); border-right:1px solid rgba(255,255,255,0.07); padding:22px 14px;}
+  .d-logo{font-size:20px; font-weight:900; padding:0 8px 22px; letter-spacing:-0.5px;}
+  .d-nav-item{
+    display:flex; align-items:center; gap:11px; padding:11px 12px; border-radius:10px; margin-bottom:5px;
+    font-size:13px; font-weight:700; color:var(--ink-soft); cursor:pointer;
+  }
+  .d-nav-item.active{background:linear-gradient(135deg,rgba(255,140,0,0.20),rgba(208,38,200,0.20)); color:#fff; border:1px solid rgba(255,140,0,0.35);}
+  .d-nav-item .ic{font-size:17px;}
+  .d-nav-foot{margin-top:30px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.07);}
+  .d-main{padding:26px 28px; background:linear-gradient(160deg,#190a26,#0a0512 60%);}
+  .d-hero{
+    display:flex; justify-content:space-between; align-items:center; gap:20px;
+    background:linear-gradient(120deg,rgba(255,140,0,0.16),rgba(208,38,200,0.16));
+    border:1px solid rgba(255,255,255,0.14); border-radius:16px; padding:22px 26px; margin-bottom:22px;
+  }
+  .d-hero h2{margin:0 0 6px; font-size:21px; font-weight:900;}
+  .d-hero p{margin:0; font-size:12px; color:var(--ink-soft);}
+  .d-hero button{background:linear-gradient(135deg,var(--yoga-a),var(--yoga-b)); border:none; color:#fff; padding:12px 22px; border-radius:11px; font-weight:800; font-size:13px; cursor:pointer; white-space:nowrap;}
+  .d-grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:22px;}
+  .d-card{background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.10); border-radius:14px; padding:16px 18px;}
+  .d-card .cic{width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:10px;}
+  .d-card h3{margin:0 0 4px; font-size:13px; font-weight:800;}
+  .d-card p{margin:0; font-size:10px; color:var(--ink-ghost);}
+  .d-cal-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+  .d-cal-head h3{margin:0; font-size:14px; font-weight:800;}
+  .d-calendar{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
+  .d-cell{aspect-ratio:1; background:rgba(255,255,255,0.035); border:1px solid rgba(255,255,255,0.06); border-radius:9px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-size:11px; font-weight:800;}
+  .d-cell.done{background:rgba(255,255,255,0.13); border-color:rgba(255,255,255,0.22);}
+  .d-cell.today{border-color:#fff; border-width:2px;}
+  .d-dots{display:flex; gap:2px;}
+  .d-dot{width:4px; height:4px; border-radius:50%;}
+  .d-right{padding:24px 18px; border-left:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.02);}
+  .d-right h4{font-size:10px; letter-spacing:1.5px; color:var(--ink-ghost); margin:0 0 12px; font-weight:800;}
+  .d-streak{display:flex; gap:8px; margin-bottom:20px;}
+  .d-streak-card{flex:1; background:rgba(255,255,255,0.05); border-radius:10px; padding:10px 6px; text-align:center;}
+  .d-streak-card .n{font-size:18px; font-weight:900;}
+  .d-streak-card .l{font-size:8px; color:var(--ink-ghost); font-weight:700; margin-top:2px;}
+  .d-sched-row{display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.04); border-radius:9px; padding:9px 10px; margin-bottom:7px; font-size:11px;}
+  .d-sched-row span:last-child{margin-left:auto; font-weight:800;}
+  .d-callout{font-size:10px; color:var(--ink-ghost); line-height:1.7; margin-top:8px;}
+
+  /* ───────── MOBILE VIEW (shared Android/iOS) ───────── */
+  .mobile-wrap{display:flex; gap:60px; justify-content:center; flex-wrap:wrap; padding-top:10px;}
+  .phone-col{text-align:center;}
+  .phone-label{font-size:12px; font-weight:800; color:var(--ink-soft); margin-bottom:14px; letter-spacing:1px;}
+  .phone-label .os{font-size:16px; vertical-align:-2px; margin-right:5px;}
+  .phone{
+    width:300px; height:640px; border-radius:42px; border:10px solid #1b1224; background:#000;
+    box-shadow:0 30px 80px rgba(0,0,0,0.55); overflow:hidden; position:relative;
+  }
+  .phone-screen{width:100%; height:100%; background:linear-gradient(150deg,#FF6500,#C0006A,#8B00D0); overflow:hidden; display:flex; flex-direction:column;}
+  .m-status{display:flex; justify-content:space-between; padding:10px 18px 4px; font-size:11px; font-weight:700; color:#fff;}
+  .m-header{padding:6px 16px 0;}
+  .m-header h2{margin:0; font-size:17px; font-weight:900;}
+  .m-header .tag{font-size:7px; letter-spacing:1.5px; color:rgba(255,255,255,0.4); font-weight:700; margin-top:1px;}
+  .m-tabs{display:flex; gap:3px; padding:10px 14px 0;}
+  .m-tab{flex:1; text-align:center; padding:7px 2px; border-radius:9px 9px 0 0; font-size:9px; font-weight:700; color:rgba(255,255,255,0.4);}
+  .m-tab.active{background:rgba(255,255,255,0.16); color:#fff;}
+  .m-tab .ic{display:block; font-size:14px; margin-bottom:1px;}
+  .m-body{flex:1; background:rgba(0,0,0,0.15); margin:0 12px; border-radius:14px 14px 0 0; padding:14px 12px; overflow:hidden;}
+  .m-card{background:rgba(255,255,255,0.10); border:1px solid rgba(255,255,255,0.18); border-radius:12px; padding:11px 12px; margin-bottom:9px; display:flex; align-items:center; gap:10px;}
+  .m-card .cic{width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,0.14); display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0;}
+  .m-card .tx h4{margin:0; font-size:11px; font-weight:800; color:#fff;}
+  .m-card .tx p{margin:1px 0 0; font-size:8.5px; color:rgba(255,255,255,0.55);}
+  .m-cal{display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-top:8px;}
+  .m-cell{aspect-ratio:1; background:rgba(255,255,255,0.07); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:800; color:rgba(255,255,255,0.5);}
+  .m-cell.done{background:rgba(255,255,255,0.22); color:#fff;}
+  .m-cell.today{border:1.5px solid #fff;}
+  .same-badge{
+    display:inline-flex; align-items:center; gap:6px; margin-top:18px; font-size:11px; color:#9BFFCB;
+    background:rgba(0,210,100,0.10); border:1px solid rgba(0,210,100,0.30); padding:8px 16px; border-radius:20px;
+  }
+  .center{text-align:center;}
+  h2.section{font-size:15px; font-weight:800; margin:0 0 4px;}
+  p.section-sub{font-size:11px; color:var(--ink-ghost); margin:0 0 22px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>Karma28 — Platform UI Mockup</h1>
+    <div class="tag">RESPONSIVE STRATEGY DEMO</div>
+  </div>
+  <div class="switcher">
+    <button class="active" onclick="show('desktop',this)">💻 Desktop Website</button>
+    <button onclick="show('mobile',this)">📱 Mobile (Android &amp; iOS)</button>
+  </div>
+</div>
+
+<div class="stage">
+
+  <div id="view-desktop" class="view active">
+    <div class="note"><b>Trigger:</b> viewport ≥1024px AND not running inside the Capacitor native shell. The desktop site re-flows into a 3-column shell — sidebar nav, multi-column dashboard, stats rail — instead of just stretching the phone layout wider.</div>
+
+    <div class="desktop-frame">
+      <div class="desktop-app">
+        <div class="d-sidebar">
+          <div class="d-logo">Karma28</div>
+          <div class="d-nav-item active"><span class="ic">🪷</span> Yoga &amp; Dhyan</div>
+          <div class="d-nav-item"><span class="ic">🔥</span> IdealWeight</div>
+          <div class="d-nav-item"><span class="ic">🎙️</span> Kommunicate</div>
+          <div class="d-nav-foot">
+            <div class="d-nav-item"><span class="ic">📅</span> Calendar</div>
+            <div class="d-nav-item"><span class="ic">⚙️</span> Settings</div>
+          </div>
+        </div>
+
+        <div class="d-main">
+          <div class="d-hero">
+            <div>
+              <h2>Day 12 — Foundation Phase</h2>
+              <p>Wake 3:30 AM · Yoga by 4:55 AM · Meal window 11:30 AM · Fast after 6 PM</p>
+            </div>
+            <button>Start Today's Session →</button>
+          </div>
+
+          <div class="d-grid2">
+            <div class="d-card">
+              <div class="cic" style="background:rgba(255,140,0,0.18);">☀️</div>
+              <h3>Surya Namaskar</h3>
+              <p>6 rounds · mantra per round</p>
+            </div>
+            <div class="d-card">
+              <div class="cic" style="background:rgba(208,38,200,0.18);">🌀</div>
+              <h3>Sudarshan Kriya</h3>
+              <p>15 min · 3-stage pranayama</p>
+            </div>
+            <div class="d-card">
+              <div class="cic" style="background:rgba(255,68,136,0.18);">🪷</div>
+              <h3>Padmasana Dhyan</h3>
+              <p>10 min · video guided</p>
+            </div>
+            <div class="d-card">
+              <div class="cic" style="background:rgba(119,68,255,0.18);">🌙</div>
+              <h3>Sanyam Dhyan</h3>
+              <p>20 min · bells &amp; Samadhi</p>
+            </div>
+          </div>
+
+          <div class="d-cal-head">
+            <h3>28-Day Progress — June 2026</h3>
+            <span style="font-size:10px;color:var(--ink-ghost);">Full month, always visible — no scrolling needed</span>
+          </div>
+          <div class="d-calendar" id="d-calendar"></div>
+        </div>
+
+        <div class="d-right">
+          <h4>STREAKS</h4>
+          <div class="d-streak">
+            <div class="d-streak-card"><div class="n" style="color:var(--yoga-a);">5🔥</div><div class="l">YOGA</div></div>
+            <div class="d-streak-card"><div class="n" style="color:var(--weight-a);">3🔥</div><div class="l">WEIGHT</div></div>
+            <div class="d-streak-card"><div class="n" style="color:var(--comm-a);">5🔥</div><div class="l">SPEAK</div></div>
+          </div>
+          <h4>TODAY'S SCHEDULE</h4>
+          <div class="d-sched-row">🌅 Wake Up <span>3:30 AM</span></div>
+          <div class="d-sched-row">🧘 Start Yoga <span>4:55 AM</span></div>
+          <div class="d-sched-row">🍽️ Meal Window <span>11:30 AM</span></div>
+          <div class="d-sched-row">🚫 Fast Starts <span>6:00 PM</span></div>
+          <div class="d-callout">Same data, same components as mobile — just laid out to use the extra width instead of leaving it empty.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-mobile" class="view">
+    <div class="note"><b>Trigger:</b> viewport &lt;1024px on the web build, OR <code>Capacitor.isNativePlatform()</code> is true. Android and iOS run the exact same component tree inside a Capacitor shell — this isn't "similar," it's literally identical markup, so there's no parity drift to manage between the two.</div>
+    <div class="center">
+      <h2 class="section">One UI, two stores</h2>
+      <p class="section-sub">Android and iOS show the identical screen below — only the status bar icons differ.</p>
+    </div>
+
+    <div class="mobile-wrap">
+      <div class="phone-col">
+        <div class="phone-label"><span class="os">🤖</span>ANDROID</div>
+        <div class="phone"><div class="phone-screen" id="phone-android"></div></div>
+      </div>
+      <div class="phone-col">
+        <div class="phone-label"><span class="os">🍎</span>iOS</div>
+        <div class="phone"><div class="phone-screen" id="phone-ios"></div></div>
+      </div>
+    </div>
+    <div class="center"><span class="same-badge">✓ Same React component tree on both — zero layout drift to maintain</span></div>
+  </div>
+
+</div>
+
+<script>
+function show(id, btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  document.querySelectorAll('.switcher button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// Build desktop calendar (full month grid)
+const dcal = document.getElementById('d-calendar');
+const doneDays = [1,2,3,4,5,6,8,9,10,11,12];
+for(let i=1;i<=30;i++){
+  const cell = document.createElement('div');
+  cell.className = 'd-cell' + (doneDays.includes(i)?' done':'') + (i===12?' today':'');
+  const dots = doneDays.includes(i) ? '<div class="d-dots"><div class="d-dot" style="background:#FF8C00"></div><div class="d-dot" style="background:#FF5500"></div><div class="d-dot" style="background:#3399FF"></div></div>' : '';
+  cell.innerHTML = '<span>'+i+'</span>' + dots;
+  dcal.appendChild(cell);
+}
+
+// Build matching phone screens
+function buildPhoneHTML(){
+  let cal = '';
+  for(let i=1;i<=21;i++){
+    cal += '<div class="m-cell'+(doneDays.includes(i)?' done':'')+(i===12?' today':'')+'">'+i+'</div>';
+  }
+  return `
+    <div class="m-status"><span>9:41</span><span>●●●📶 🔋</span></div>
+    <div class="m-header">
+      <h2>Karma28</h2>
+      <div class="tag">28-DAY TRANSFORMATION · DAY 12</div>
+    </div>
+    <div class="m-tabs">
+      <div class="m-tab active"><span class="ic">🪷</span>Yoga</div>
+      <div class="m-tab"><span class="ic">🔥</span>Weight</div>
+      <div class="m-tab"><span class="ic">🎙️</span>Speak</div>
+    </div>
+    <div class="m-body">
+      <div class="m-card"><div class="cic">🌅</div><div class="tx"><h4>Do All 4 Together</h4><p>Configure once, run straight through</p></div></div>
+      <div class="m-card"><div class="cic">☀️</div><div class="tx"><h4>Surya Namaskar</h4><p>6 rounds · mantra per round</p></div></div>
+      <div class="m-card"><div class="cic">🌀</div><div class="tx"><h4>Sudarshan Kriya</h4><p>15 min Kriya</p></div></div>
+      <div class="m-cal">${cal}</div>
+    </div>
+  `;
+}
+document.getElementById('phone-android').innerHTML = buildPhoneHTML();
+document.getElementById('phone-ios').innerHTML = buildPhoneHTML();
+</script>
+</body>
+</html>
