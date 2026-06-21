@@ -58,3 +58,16 @@ This specific fix (Vercel 404): build/preview verified locally; **production con
 ## Next Action
 
 Proceeding into Phase 5/6 module work per `dev-control/PHASE_PLAN.md`, starting with foundation items (repo hygiene, storage-key rename, design-token extraction, PWA basics, QA scaffolding) that don't require external credentials. Items needing Supabase/AI-provider/payment-gateway credentials will be flagged separately rather than attempted with placeholders.
+
+## Foundation batch (2026-06-21, branch `feature/qa-scaffold-vitest`)
+
+Consolidated branch combining 3 previously-separate feature branches (storage migration + design tokens, PWA, QA scaffold), all verified together:
+
+- ✅ Storage keys migrated `karma28_*` → `karma33_*` with safe copy-forward migration (no data loss for any existing local testing).
+- ✅ Design tokens extracted to `src/tokens.js` (`ADULT_TABS`, `TEENS_TABS`, `buildTheme`) — first step of the desktop-layout prerequisite from `CROSS_PLATFORM_PLAN.md`.
+- ✅ PWA: real service worker (Workbox via `vite-plugin-pwa`), branded icons (192/512/512-maskable, rendered via Playwright from the app's own Yoga gradient), `manifest.webmanifest`.
+- ✅ QA scaffold: Vitest + React Testing Library installed, first 7 unit tests passing (`src/tokens.test.js`), `qa/` deliverables written (`TEST_PLAN.md`, `TEST_CASES.md`, `AUTOMATION_PLAN.md`, `QA_EXECUTION_REGISTER.md`, `QA_SIGNOFF.md`).
+- ✅ All verified: `npm run build` green, `npm test` 7/7, deployment-verification script PASS on local preview at each step.
+- ⏸ **Not merged to `main` yet** — per auto-mode policy, each merge to `main` needs Kumar's explicit go-ahead; this batch is queued for review rather than auto-merged.
+- ⏸ `karma28-vercel/` duplicate-folder removal — still blocked pending Kumar's explicit confirmation (flagged since the first repo assessment).
+- ⬜ Not attempted (blocked on external credentials, not started without them): Supabase backend, AI coaching API key/provider, payment gateway (also explicitly deferred per spec), Capacitor native builds.
