@@ -1,65 +1,24 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { ADULT_TABS, TEENS_TABS, buildTheme } from "./tokens.js";
 
 // ═══════════════════════════════════════════════════════════
-// KARMA28 v9 — Audio-Guided Yoga Practice Engine
+// KARMA33 (formerly Karma28) — Audio-Guided Yoga Practice Engine
 // ═══════════════════════════════════════════════════════════
 
-// ── TAB CONFIG ────────────────────────────────────────────
-const ADULT_TABS = {
-  yoga:  {label:"Yoga & Dhyan",short:"Yoga",  icon:"🪷",A:"#FF8C00",B:"#D026C8",vivBg:"linear-gradient(150deg,#FF6500,#C0006A,#8B00D0)",dotColor:"#FF8C00",fg:"#fff",fgMid:"rgba(255,255,255,0.85)",fgSoft:"rgba(255,255,255,0.55)",fgGhost:"rgba(255,255,255,0.22)"},
-  weight:{label:"IdealWeight",  short:"Weight",icon:"🔥",A:"#FF2200",B:"#FFB300",vivBg:"linear-gradient(150deg,#CC1500,#FF5500,#DD8800)",dotColor:"#FF5500",fg:"#fff",fgMid:"rgba(255,255,255,0.88)",fgSoft:"rgba(255,255,255,0.58)",fgGhost:"rgba(255,255,255,0.22)"},
-  comm:  {label:"Kommunicate", short:"Speak", icon:"🎙️",A:"#0055FF",B:"#00AADD",vivBg:"linear-gradient(150deg,#001899,#0044CC,#0088BB)",dotColor:"#3399FF",fg:"#fff",fgMid:"rgba(255,255,255,0.85)",fgSoft:"rgba(255,255,255,0.55)",fgGhost:"rgba(255,255,255,0.22)"},
-};
-const TEENS_TABS = {
-  yoga:  {label:"Morning Power",short:"Morning",icon:"🌅",A:"#FF6B6B",B:"#FFE66D",vivBg:"linear-gradient(150deg,#CC2244,#DD4400,#CC8800)",dotColor:"#FF6B6B",fg:"#fff",fgMid:"rgba(255,255,255,0.85)",fgSoft:"rgba(255,255,255,0.55)",fgGhost:"rgba(255,255,255,0.22)"},
-  weight:{label:"Boss Moves",  short:"Moves",  icon:"🦾",A:"#00C87A",B:"#00AACC",vivBg:"linear-gradient(150deg,#006644,#008855,#006688)",dotColor:"#00E890",fg:"#fff",fgMid:"rgba(255,255,255,0.85)",fgSoft:"rgba(255,255,255,0.55)",fgGhost:"rgba(255,255,255,0.22)"},
-  comm:  {label:"Real Talk",   short:"Talk",   icon:"💬",A:"#9933FF",B:"#DD0099",vivBg:"linear-gradient(150deg,#550099,#8800BB,#AA0077)",dotColor:"#CC66FF",fg:"#fff",fgMid:"rgba(255,255,255,0.85)",fgSoft:"rgba(255,255,255,0.55)",fgGhost:"rgba(255,255,255,0.22)"},
-};
-
-// ── THEME ─────────────────────────────────────────────────
-function buildTheme(mode,tabCfg,tab){
-  const t=tabCfg[tab];
-  if(mode==="dark") return {
-    mode:"dark",appBg:"#06060f",hdrBg:"rgba(6,6,18,0.97)",
-    card:"#0d0d20",cardBorder:"#181832",cardHover:t.A+"55",
-    inner:"#07071a",innerB:"#11113a",
-    t1:"#f0f4ff",t2:"#7788aa",t3:"#334466",t4:"#121830",
-    tag:t.A+"22",tagTxt:t.A,tagB:t.A+"44",
-    btn:`linear-gradient(135deg,${t.A},${t.B})`,btnTxt:"#fff",
-    calDone:t.A+"44",calToday:t.A+"33",acc:t.A,accB:t.B,
-    step:`linear-gradient(135deg,${t.A},${t.B})`,stepTxt:"#fff",
-    tip:t.A+"14",tipB:t.A+"33",tipTxt:t.A,
-    hero:t.A+"14",heroB:t.A+"33",
-    miss:"rgba(220,40,40,0.12)",missB:"rgba(220,40,40,0.35)",
-    tabAct:t.A+"22",tabB:t.A+"55",
-    habitDone:"rgba(0,210,100,0.12)",habitDoneB:"rgba(0,210,100,0.38)",
-    on6am:"rgba(255,160,0,0.12)",on6amB:"rgba(255,160,0,0.35)",on6amTxt:"#FFAA00",
-    inputBg:"#0d0d20",inputB:"#181832",divider:"rgba(255,255,255,0.06)",
-    sectionLabel:"#334466",checkBorder:"#334466",
-    ring:t.A,ringTrack:"#181832",ringBg:"#0d0d20",
-  };
-  const {fg,fgMid,fgSoft,fgGhost}=t;
-  return {
-    mode:"vivid",appBg:t.vivBg,hdrBg:"rgba(0,0,0,0.22)",
-    card:"rgba(255,255,255,0.13)",cardBorder:"rgba(255,255,255,0.22)",cardHover:"rgba(255,255,255,0.30)",
-    inner:"rgba(255,255,255,0.12)",innerB:"rgba(255,255,255,0.20)",
-    t1:fg,t2:fgMid,t3:fgSoft,t4:fgGhost,
-    tag:"rgba(255,255,255,0.22)",tagTxt:fg,tagB:"rgba(255,255,255,0.35)",
-    btn:"rgba(0,0,0,0.28)",btnTxt:"#fff",
-    calDone:"rgba(255,255,255,0.35)",calToday:"rgba(255,255,255,0.18)",
-    acc:fg,accB:fgMid,
-    step:"rgba(0,0,0,0.28)",stepTxt:"#fff",
-    tip:"rgba(255,255,255,0.14)",tipB:"rgba(255,255,255,0.28)",tipTxt:fg,
-    hero:"rgba(255,255,255,0.12)",heroB:"rgba(255,255,255,0.26)",
-    miss:"rgba(255,40,40,0.18)",missB:"rgba(255,40,40,0.40)",
-    tabAct:"rgba(255,255,255,0.18)",tabB:"rgba(255,255,255,0.50)",
-    habitDone:"rgba(255,255,255,0.20)",habitDoneB:"rgba(255,255,255,0.42)",
-    on6am:"rgba(255,200,0,0.18)",on6amB:"rgba(255,200,0,0.38)",on6amTxt:fg,
-    inputBg:"rgba(255,255,255,0.12)",inputB:"rgba(255,255,255,0.25)",
-    divider:"rgba(255,255,255,0.10)",sectionLabel:fgSoft,checkBorder:"rgba(255,255,255,0.30)",
-    ring:"#fff",ringTrack:"rgba(255,255,255,0.16)",ringBg:"rgba(0,0,0,0.20)",
-  };
+// One-time copy-forward migration so existing local data (from earlier
+// Karma28-branded testing) isn't silently lost when storage keys move
+// to the karma33_* namespace. Safe/idempotent: only copies when the new
+// key doesn't exist yet, never deletes the old key.
+function migrateLegacyStorageKey(oldKey, newKey){
+  try{
+    if(localStorage.getItem(newKey)===null){
+      const legacy=localStorage.getItem(oldKey);
+      if(legacy!==null) localStorage.setItem(newKey, legacy);
+    }
+  }catch(e){}
 }
+[["karma28_v8","karma33_v1"],["karma28_practice_config_v1","karma33_practice_config_v1"],["karma28_voice_rate_v1","karma33_voice_rate_v1"],["karma28_test_mode_v1","karma33_test_mode_v1"]]
+  .forEach(([oldKey,newKey])=>migrateLegacyStorageKey(oldKey,newKey));
 
 const IS_BETA=true;
 
@@ -369,7 +328,7 @@ const DEFAULT_PRACTICE_CONFIG={
   },
 };
 
-const CONFIG_KEY="karma28_practice_config_v1";
+const CONFIG_KEY="karma33_practice_config_v1";
 function loadPracticeConfig(){
   try{
     const raw=localStorage.getItem(CONFIG_KEY);
@@ -399,7 +358,7 @@ const SPEED_PRESETS=[
 // ── GLOBAL VOICE CHARACTER — applied as a playbackRate multiplier
 // to every recorded cue, so one recording can be made to sound
 // deeper, higher, or "baby-like" without re-recording.
-const VOICE_RATE_KEY="karma28_voice_rate_v1";
+const VOICE_RATE_KEY="karma33_voice_rate_v1";
 const VOICE_PRESETS=[
   {id:"deep",    label:"Deeper",  rate:0.82},
   {id:"natural", label:"Natural", rate:1.0},
@@ -413,7 +372,7 @@ function saveVoiceRate(rate){ try{ localStorage.setItem(VOICE_RATE_KEY,String(ra
 
 // ── TEST / ADMIN MODE — when on, every timed screen shows a
 // "Skip" button so Kumar can test the full flow instantly.
-const TEST_MODE_KEY="karma28_test_mode_v1";
+const TEST_MODE_KEY="karma33_test_mode_v1";
 function loadTestMode(){ try{ return localStorage.getItem(TEST_MODE_KEY)==="1"; }catch(e){ return false; } }
 function saveTestMode(on){ try{ localStorage.setItem(TEST_MODE_KEY, on?"1":"0"); }catch(e){} }
 
@@ -1846,7 +1805,7 @@ function buildSchedule(isTeens){
   return Array.from({length:28},(_,i)=>{const d=i%7,w2=Math.floor(i/7)<2;return{day:i+1,dayName:dn[d],type:isTeens?(w2?"Training":"Boss Mode"):(w2?t12a[d]:t34a[d]),phase:w2?"Foundation":"Intensity",week:Math.floor(i/7)+1,exIds:isTeens?(w2?tw12[d]:tw34[d]):(w2?w12[d]:w34[d]),topicId:`T${i+1}`,isRest:d===3||d===6};});
 }
 
-const SK="karma28_v8";
+const SK="karma33_v1";
 const load=()=>{try{return JSON.parse(localStorage.getItem(SK))||{};}catch{return{};}};
 const save=s=>{try{localStorage.setItem(SK,JSON.stringify(s));}catch{}};
 const todayKey=()=>new Date().toISOString().split("T")[0];
