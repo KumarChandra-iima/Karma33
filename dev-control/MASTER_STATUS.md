@@ -48,9 +48,13 @@ Phase 0–4 (environment validation, repo assessment, feature matrix, code reuse
 Phase 5 full scaffolding (`BUG_REGISTER.md`, `AGENT_ACTIVITY_LOG.md`, `ESCALATION_REGISTER.md`, `live-status.json`): partially seeded by this fix, not fully built out yet.
 This specific fix (Vercel 404): build/preview verified locally; **production confirmation pending** — see Next Action.
 
+## Resolution (2026-06-21)
+
+- Preview confirmed working by Kumar; merged to `main` (`503845b`).
+- `dev-control/scripts/verify-deployment.sh` (Playwright screenshot + local Ollama vision model `qwen2.5vl:7b`) added and merged (`4c12f65`) so future deployment checks are self-verified instead of routed through Kumar.
+- Production re-verified independently: `https://karma33.vercel.app/` → HTTP 200, Ollama vision verdict **PASS** ("Karma33 branding visible, real app UI loaded"). BUG-001 closed with evidence — see `dev-control/BUG_REGISTER.md`.
+- Vercel URL pattern learned and saved to memory: production is stable at `karma33.vercel.app`; per-deployment preview IDs are not derivable from commit SHA, but git-branch alias URLs (`karma33-git-<branch>-kumarchandra-iimas-projects.vercel.app`) are a reliable guessable fallback for future branch checks.
+
 ## Next Action
 
-1. Push `feature/phase-5-app-scaffold-vercel-fix` to origin.
-2. Confirm Vercel auto-deploys a preview for the branch (project is already connected per user report).
-3. User to confirm the preview URL loads correctly (no 404) and to confirm/verify the dashboard build settings listed in `docs/VERCEL_DEPLOYMENT_FIX.md`.
-4. Only after preview confirmation, merge to `main` and confirm production URL no longer 404s.
+Proceeding into Phase 5/6 module work per `dev-control/PHASE_PLAN.md`, starting with foundation items (repo hygiene, storage-key rename, design-token extraction, PWA basics, QA scaffolding) that don't require external credentials. Items needing Supabase/AI-provider/payment-gateway credentials will be flagged separately rather than attempted with placeholders.

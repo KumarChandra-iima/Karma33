@@ -1,14 +1,14 @@
 {
   "lastUpdated": "2026-06-21",
-  "currentPhase": "Phase 5 - Agent Execution Framework (scaffold fix)",
+  "currentPhase": "Phase 5/6 - module development starting",
   "activeStream": "Stream A / Infra",
   "activeAgent": "Claude Code",
   "openBugs": 1,
   "fixedBugs": 1,
   "testStatus": "no automated tests yet; manual QA green for local build/preview",
-  "buildStatus": "green (local: npm install, npm run build, npm run preview all pass)",
+  "buildStatus": "green (local: npm install, npm run build, npm run preview all pass; production verified live)",
   "escalations": 0,
-  "latestCommit": "pending - not yet committed",
-  "progressPercent": 10,
-  "notes": "Root cause of production 404 was a missing root-level Vite scaffold. Scaffold created on feature/phase-5-app-scaffold-vercel-fix, reusing karma28.jsx via src/App.jsx with visible naming updated to Karma33. Vercel preview deployment confirmation is pending (no Vercel CLI access from this environment) before merge to main."
+  "latestCommit": "4c12f65",
+  "progressPercent": 15,
+  "notes": "BUG-001 (production 404) fixed and closed with evidence: production verified live at https://karma33.vercel.app/ via dev-control/scripts/verify-deployment.sh (Playwright + Ollama qwen2.5vl:7b vision verdict PASS). Proceeding into Phase 5/6 module work per dev-control/PHASE_PLAN.md."
 }
