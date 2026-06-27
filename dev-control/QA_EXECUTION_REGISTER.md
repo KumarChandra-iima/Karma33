@@ -76,3 +76,46 @@ QA for `feature/teens-workout-music-player` is **fully green**. All 37 automated
 ### Sign-off
 
 QA for `fix/surya-my-voice-playback` is **fully green**. 51/51 tests. Build clean. Onboarding regression passing. Root cause documented in `docs/AUDIO_RECORDING_PLAYBACK_FIX.md`.
+
+---
+
+## QA pass: Mobile PWA recorded audio player state (branch `fix/mobile-pwa-recorded-audio-player-state`)
+
+### BUG-006 — My Voice fails on mobile PWA; no Pause/Stop UI; duplicate overlapping playback
+
+| Check | Method | Result | Evidence |
+|---|---|---|---|
+| `getBestMimeType()` returns `audio/mp4` when supported | Unit test | ✅ Pass | 68/68 |
+| `getBestMimeType()` falls through to `audio/webm;codecs=opus` | Unit test | ✅ Pass | 68/68 |
+| `getBestMimeType()` returns empty string when nothing supported | Unit test | ✅ Pass | 68/68 |
+| Initial status is idle, Play button visible | Component test | ✅ Pass | 68/68 |
+| After Play tap: Pause + Stop appear, Play disappears | Component test | ✅ Pass | 68/68 |
+| After Pause tap: Resume + Stop appear | Component test | ✅ Pass | 68/68 |
+| After Stop tap: Play button returns | Component test | ✅ Pass | 68/68 |
+| audio.onended fires → status returns to idle | Component test | ✅ Pass | 68/68 |
+| Double-tap Play impossible (Play button gone when playing) | Component test | ✅ Pass | 68/68 |
+| While cue-a plays, cue-b Play button is disabled | Mutual exclusion test | ✅ Pass | 68/68 |
+| After cue-a ends, cue-b button re-enabled | Mutual exclusion test | ✅ Pass | 68/68 |
+| Null blob calls onFallback, status stays idle | Fallback test | ✅ Pass | 68/68 |
+| Empty blob (size=0) calls onFallback | Fallback test | ✅ Pass | 68/68 |
+| play() rejection calls onFallback, status=error | Error test | ✅ Pass | 68/68 |
+| URL.revokeObjectURL called after onended | URL lifecycle test | ✅ Pass | 68/68 |
+| `npm run build` | `vite build` | ✅ Pass | 35 modules, 358ms |
+| Onboarding flow regression | `validate-onboarding-flow.cjs` | ✅ Pass | `allPassed: true`, 4/4 steps |
+
+### Manual Mobile QA Required
+
+Automated tests run on desktop jsdom. The following must be verified manually on a real iOS/Android device:
+- [ ] Record a Surya mantra on iOS Safari (iOS 16.4+)
+- [ ] Tap Play mine — confirm voice plays and button shows Pause + Stop
+- [ ] Tap Pause — confirm audio pauses
+- [ ] Tap Resume — confirm audio resumes
+- [ ] Tap Stop — confirm button returns to Play mine
+- [ ] Rapid tap Play mine — confirm no overlapping audio
+- [ ] Begin Practice with My Voice — confirm mantra plays (or TTS fallback fires)
+
+See `docs/MOBILE_AUDIO_PLAYBACK_NOTES.md` for full checklist.
+
+### Sign-off
+
+Desktop automated QA for `fix/mobile-pwa-recorded-audio-player-state` is **fully green**. 68/68 tests. Build clean. Onboarding regression passing. Manual mobile QA required before declaring full mobile resolution.
