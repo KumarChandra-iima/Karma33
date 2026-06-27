@@ -1,6 +1,6 @@
 # Karma33 — Master Status
 
-Last updated: 2026-06-21
+Last updated: 2026-06-27
 
 ## Current Phase
 
@@ -55,9 +55,27 @@ This specific fix (Vercel 404): build/preview verified locally; **production con
 - Production re-verified independently: `https://karma33.vercel.app/` → HTTP 200, Ollama vision verdict **PASS** ("Karma33 branding visible, real app UI loaded"). BUG-001 closed with evidence — see `dev-control/BUG_REGISTER.md`.
 - Vercel URL pattern learned and saved to memory: production is stable at `karma33.vercel.app`; per-deployment preview IDs are not derivable from commit SHA, but git-branch alias URLs (`karma33-git-<branch>-kumarchandra-iimas-projects.vercel.app`) are a reliable guessable fallback for future branch checks.
 
+## Feature: Workout Music Control (2026-06-27)
+
+**Branch:** `feature/teens-workout-music-player`
+
+Added in-app beat/music control for Teens → Boss Moves workouts.
+
+- **New files:** `src/hooks/useWorkoutBeat.js`, `src/components/audio/WorkoutMusicControl.jsx`, `src/test/workoutMusic.test.jsx`
+- **Modified:** `src/App.jsx` — import + `ExCard` updated to detect music intent and render `WorkoutMusicControl`
+- **Detection:** any step containing 🎵, "pump-up song", "Music + movement", or "play music"
+- **Audio:** Web Audio API beat loop (kick + hi-hat, 128 BPM). No external assets, no autoplay.
+- **Controls:** Play / Pause / Resume / Stop + volume slider. Auto-stops on tab hide or unmount.
+- **Tests:** 37/37 pass (vitest). Build: green. Onboarding flow: `allPassed: true` (Playwright).
+- **Design:** reusable by Adult IdealWeight via `accentColor` + `th` props.
+
+## Open Bugs
+
+- BUG-002: Kommunicate AI-coach fetch (non-blocking) — tracked, no fix yet.
+
 ## Next Action
 
-Proceeding into Phase 5/6 module work per `dev-control/PHASE_PLAN.md`, starting with foundation items (repo hygiene, storage-key rename, design-token extraction, PWA basics, QA scaffolding) that don't require external credentials. Items needing Supabase/AI-provider/payment-gateway credentials will be flagged separately rather than attempted with placeholders.
+Merge `feature/teens-workout-music-player` to `main` and push.
 
 ## Foundation batch (2026-06-21, branch `feature/qa-scaffold-vitest`)
 

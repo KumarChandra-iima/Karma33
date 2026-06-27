@@ -1,6 +1,6 @@
 # Karma33 — QA Execution Register
 
-Last updated: 2026-06-21
+Last updated: 2026-06-27
 
 ## QA pass: Vercel deployment scaffold fix (branch `feature/phase-5-app-scaffold-vercel-fix`)
 
@@ -25,3 +25,30 @@ Last updated: 2026-06-21
 ## Sign-off
 
 QA for the **local build/scaffold** portion of this fix is green. Per `ClaudMasterInstruction.md` ("never mark QA passed without execution proof"), overall sign-off for the *deployment* fix is **not yet given** — withheld until the deferred checks above are executed. See `qa/QA_SIGNOFF.md` (not yet created — full QA framework is a separate Phase 5.5 deliverable, this register covers only this fix's scope).
+
+---
+
+## QA pass: Teens workout music control (branch `feature/teens-workout-music-player`)
+
+### BUG-003 — Teens → Moves "Play pump-up song 🎵" had no playback control
+
+| Check | Method | Result | Evidence |
+|---|---|---|---|
+| Music prompt detection — step with "Play pump-up song" triggers control | `hasMusicIntent()` unit test (vitest) | ✅ Pass | 37/37 tests green |
+| Music prompt detection — 🎵 emoji triggers control | `hasMusicIntent()` unit test | ✅ Pass | 37/37 |
+| Music prompt detection — "Music + movement" triggers control | `hasMusicIntent()` unit test | ✅ Pass | 37/37 |
+| No control renders for non-music steps | `stepsHaveMusicIntent([])` + pure step arrays | ✅ Pass | 37/37 |
+| Play button renders initially | `WorkoutMusicControl` render test | ✅ Pass | 37/37 |
+| No autoplay — Stop disabled, no PLAYING indicator on load | Component render test | ✅ Pass | 37/37 |
+| Play → button changes to Pause | `fireEvent.click` on play btn | ✅ Pass | 37/37 |
+| PLAYING indicator appears after tap | Component interaction test | ✅ Pass | 37/37 |
+| Pause → button shows Resume | Double-click play/pause sequence test | ✅ Pass | 37/37 |
+| Stop → resets to initial state, Stop btn disabled | Stop button interaction test | ✅ Pass | 37/37 |
+| Volume slider renders and responds | Range input test | ✅ Pass | 37/37 |
+| onStop callback fires when Stop clicked | Callback prop test | ✅ Pass | 37/37 |
+| `npm run build` succeeds with new components | `vite build` | ✅ Pass | 34 modules, 381ms, no errors |
+| Onboarding flow still passes | `validate-onboarding-flow.cjs http://localhost:4173` | ✅ Pass | `allPassed: true`, 4/4 steps, video recorded |
+
+### Sign-off
+
+QA for `feature/teens-workout-music-player` is **fully green**. All 37 automated tests executed and pass. Build clean. Onboarding regression confirmed passing.

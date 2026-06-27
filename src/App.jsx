@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ADULT_TABS, TEENS_TABS, buildTheme } from "./tokens.js";
 import { buildSchedule } from "./schedule.js";
+import { WorkoutMusicControl } from "./components/audio/WorkoutMusicControl.jsx";
+import { stepsHaveMusicIntent } from "./hooks/useWorkoutBeat.js";
 
 // ═══════════════════════════════════════════════════════════
 // KARMA33 (formerly Karma28) — Audio-Guided Yoga Practice Engine
@@ -2079,6 +2081,9 @@ function HabitRow({habit,done,onToggle,th}){
 function ExCard({id,th,isTeens}){
   const [open,setOpen]=useState(false);
   const ex=(isTeens?TE:AE)[id];if(!ex)return null;
+  const showMusicControl=isTeens && stepsHaveMusicIntent(ex.steps);
+  // accent for Teens Moves tab
+  const musicAccent=TEENS_TABS.weight.A;
   return (
     <div style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${open?th.cardBorder:th.divider}`,borderRadius:11,marginBottom:6,overflow:"hidden"}}>
       <button onClick={()=>setOpen(o=>!o)} style={{width:"100%",padding:"10px 12px",background:"transparent",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:9,textAlign:"left"}}>
@@ -2094,6 +2099,9 @@ function ExCard({id,th,isTeens}){
               <span style={{fontSize:11,color:th.t2,lineHeight:1.5}}>{s}</span>
             </div>
           ))}
+          {showMusicControl&&(
+            <WorkoutMusicControl accentColor={musicAccent} th={th} bpm={128}/>
+          )}
           <div style={{background:th.tip,border:`1px solid ${th.tipB}`,borderRadius:7,padding:"6px 10px",fontSize:10,color:th.tipTxt,marginTop:8}}>💡 {ex.tip}</div>
         </div>
       )}
