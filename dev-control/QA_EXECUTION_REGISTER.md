@@ -52,3 +52,27 @@ QA for the **local build/scaffold** portion of this fix is green. Per `ClaudMast
 ### Sign-off
 
 QA for `feature/teens-workout-music-player` is **fully green**. All 37 automated tests executed and pass. Build clean. Onboarding regression confirmed passing.
+
+---
+
+## QA pass: Surya Namaskar My Voice playback fix (branch `fix/surya-my-voice-playback`)
+
+### BUG-005 — My Voice recordings appear saved but Play Mine produces no audio
+
+| Check | Method | Result | Evidence |
+|---|---|---|---|
+| Root cause confirmed: async await breaks gesture token before audio.play() | Ollama/qwen2.5-coder analysis + code review | ✅ Confirmed | `async function previewRecorded(){ await idbGet... }` — gesture expires before play() |
+| Synchronous previewRecorded: URL.createObjectURL called in same tick as click | Unit test (synchrony contract) | ✅ Pass | 51/51 |
+| audio.play() called synchronously | Unit test | ✅ Pass | 51/51 |
+| Null blob shows error, Audio not constructed | Unit test | ✅ Pass | 51/51 |
+| Play AI path: speak() called synchronously | Unit test | ✅ Pass | 51/51 |
+| URL.revokeObjectURL called after onended fires | Unit test | ✅ Pass | 51/51 |
+| clearRec resets blob ref — subsequent play shows error | Unit test | ✅ Pass | 51/51 |
+| Cue ID consistency: surya_mantra_0..11 save/fetch match | Unit test | ✅ Pass | 51/51 |
+| IDB_NAME unchanged (karma28_audio_v1) — existing recordings preserved | Unit test assertion | ✅ Pass | 51/51 |
+| `npm run build` | `vite build` | ✅ Pass | 34 modules, 384ms |
+| Onboarding flow regression | `validate-onboarding-flow.cjs http://localhost:4173` | ✅ Pass | `allPassed: true`, 4/4 steps |
+
+### Sign-off
+
+QA for `fix/surya-my-voice-playback` is **fully green**. 51/51 tests. Build clean. Onboarding regression passing. Root cause documented in `docs/AUDIO_RECORDING_PLAYBACK_FIX.md`.

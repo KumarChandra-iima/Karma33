@@ -1486,6 +1486,12 @@ function CueRecorderRow({cueId,label,fallbackText,th}){
   const rec=useMicRecorder();
   const [hasRec,setHasRec]=useState(false);
   const [checking,setChecking]=useState(true);
+  const [playErr,setPlayErr]=useState(false);
+  // Pre-cached blob so previewRecorded() stays synchronous.
+  // Mobile browsers require audio.play() in the same call-stack tick as the
+  // click event. Any `await` between click and play() loses the gesture token
+  // and the browser silently blocks playback (NotAllowedError, caught & swallowed).
+  const audioBlobRef=useRef(null);
 
   useEffect(()=>{
     let alive=true;
@@ -1493,26 +1499,50 @@ function CueRecorderRow({cueId,label,fallbackText,th}){
     return ()=>{alive=false;};
   },[cueId]);
 
-  function startRec(){ rec.start(); }
-  async function stopRec(){ await rec.stop(cueId); setHasRec(true); }
-  async function clearRec(){ await idbDelete(cueId); setHasRec(false); }
+  // Pre-load blob into ref whenever hasRec flips to true or cueId changes
+  useEffect(()=>{
+    if(!hasRec){ audioBlobRef.current=null; return; }
+    let alive=true;
+    idbGet(cueId).then(b=>{ if(alive) audioBlobRef.current=b||null; });
+    return ()=>{ alive=false; };
+  },[hasRec,cueId]);
+
+  function startRec(){ rec.start(); setPlayErr(false); }
+  async function stopRec(){ await rec.stop(cueId); setHasRec(true); setPlayErr(false); }
+  async function clearRec(){ await idbDelete(cueId); setHasRec(false); audioBlobRef.current=null; setPlayErr(false); }
   function previewAI(){ speak(fallbackText,0.85); }
-  async function previewRecorded(){ const blob=await idbGet(cueId); if(blob) playBlob(blob); }
+
+  // Fully synchronous — no await before audio.play() — preserves mobile gesture token
+  function previewRecorded(){
+    setPlayErr(false);
+    const blob=audioBlobRef.current;
+    if(!blob){ setPlayErr(true); return; }
+    try{
+      const url=URL.createObjectURL(blob);
+      const audio=new Audio(url);
+      let done=false;
+      const finish=()=>{ if(!done){done=true;URL.revokeObjectURL(url);} };
+      audio.onended=finish;
+      audio.onerror=()=>{ finish(); setPlayErr(true); };
+      audio.play().catch(()=>{ finish(); setPlayErr(true); });
+    }catch(e){ setPlayErr(true); }
+  }
 
   return (
-    <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:10,padding:"10px 12px",marginBottom:7}}>
+    <div data-testid={`cue-recorder-row-${cueId}`} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:10,padding:"10px 12px",marginBottom:7}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
         <div style={{fontSize:11,fontWeight:700,color:th.t1}}>{label}</div>
-        {!checking && <span style={{fontSize:9,fontWeight:800,color:hasRec?"#00DD88":"#FFB300",background:hasRec?"rgba(0,210,100,0.12)":"rgba(255,160,0,0.12)",borderRadius:5,padding:"2px 7px"}}>{hasRec?"RECORDED":"AI VOICE"}</span>}
+        {!checking && <span data-testid={`rec-status-${cueId}`} style={{fontSize:9,fontWeight:800,color:hasRec?"#00DD88":"#FFB300",background:hasRec?"rgba(0,210,100,0.12)":"rgba(255,160,0,0.12)",borderRadius:5,padding:"2px 7px"}}>{hasRec?"RECORDED":"AI VOICE"}</span>}
       </div>
       <div style={{fontSize:10,color:th.t3,marginBottom:8,fontStyle:"italic"}}>"{fallbackText}"</div>
       <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-        {rec.state!=="recording" && <button onClick={startRec} style={{background:"rgba(255,60,60,0.14)",border:"1px solid rgba(255,60,60,0.28)",color:th.t1,borderRadius:7,padding:"5px 10px",fontSize:10,fontWeight:700,cursor:"pointer"}}>🎙️ Record</button>}
-        {rec.state==="recording" && <button onClick={stopRec} style={{background:"#ff4444",border:"none",color:"#fff",borderRadius:7,padding:"5px 10px",fontSize:10,fontWeight:800,cursor:"pointer"}}>⏹ Stop</button>}
-        {hasRec && <button onClick={previewRecorded} style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.16)",color:th.t2,borderRadius:7,padding:"5px 10px",fontSize:10,fontWeight:700,cursor:"pointer"}}>▶ Play mine</button>}
-        <button onClick={previewAI} style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.16)",color:th.t2,borderRadius:7,padding:"5px 10px",fontSize:10,fontWeight:700,cursor:"pointer"}}>🤖 Play AI</button>
-        {hasRec && <button onClick={clearRec} style={{background:"transparent",border:"1px solid rgba(255,100,100,0.30)",color:"#ff8888",borderRadius:7,padding:"5px 10px",fontSize:10,fontWeight:700,cursor:"pointer"}}>✕ Remove</button>}
+        {rec.state!=="recording" && <button data-testid={`rec-btn-${cueId}`} onClick={startRec} style={{background:"rgba(255,60,60,0.14)",border:"1px solid rgba(255,60,60,0.28)",color:th.t1,borderRadius:7,padding:"5px 10px",fontSize:10,fontWeight:700,cursor:"pointer"}}>🎙️ Record</button>}
+        {rec.state==="recording" && <button data-testid={`stop-btn-${cueId}`} onClick={stopRec} style={{background:"#ff4444",border:"none",color:"#fff",borderRadius:7,padding:"5px 10px",fontSize:10,fontWeight:800,cursor:"pointer"}}>⏹ Stop</button>}
+        {hasRec && <button data-testid={`play-mine-btn-${cueId}`} onClick={previewRecorded} style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.16)",color:th.t2,borderRadius:7,padding:"5px 10px",fontSize:10,fontWeight:700,cursor:"pointer"}}>▶ Play mine</button>}
+        <button data-testid={`play-ai-btn-${cueId}`} onClick={previewAI} style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.16)",color:th.t2,borderRadius:7,padding:"5px 10px",fontSize:10,fontWeight:700,cursor:"pointer"}}>🤖 Play AI</button>
+        {hasRec && <button data-testid={`clear-btn-${cueId}`} onClick={clearRec} style={{background:"transparent",border:"1px solid rgba(255,100,100,0.30)",color:"#ff8888",borderRadius:7,padding:"5px 10px",fontSize:10,fontWeight:700,cursor:"pointer"}}>✕ Remove</button>}
       </div>
+      {playErr && <div data-testid={`play-err-${cueId}`} style={{fontSize:10,color:"#FF6B6B",marginTop:7,padding:"5px 8px",background:"rgba(255,100,100,0.10)",borderRadius:6,border:"1px solid rgba(255,100,100,0.25)"}}>Recorded audio could not be played. Please re-record or check browser audio permission.</div>}
     </div>
   );
 }
