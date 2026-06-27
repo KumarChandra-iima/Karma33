@@ -4,11 +4,11 @@
   "activeStream": "Stream A (UI) + Audio bug fixes",
   "activeAgent": "Claude Code (with Ollama/qwen2.5-coder first-pass analysis)",
   "openBugs": 1,
-  "fixedBugs": 4,
-  "testStatus": "51/51 automated unit+component tests passing (vitest); onboarding flow validated (Playwright allPassed: true)",
-  "buildStatus": "green (npm run build: 34 modules, 384ms, no errors)",
+  "fixedBugs": 5,
+  "testStatus": "68/68 automated unit+component tests passing (vitest); onboarding flow validated (Playwright allPassed: true)",
+  "buildStatus": "green (npm run build: 35 modules, 358ms, no errors)",
   "escalations": 0,
-  "latestCommit": "pending merge — fix/surya-my-voice-playback",
-  "progressPercent": 33,
-  "notes": "BUG-005 fixed: Surya Namaskar My Voice recordings now play on mobile. Root cause was async await breaking browser user-gesture token before audio.play(). Fixed by pre-caching blob in useRef and making previewRecorded() synchronous. BUG-002 (Kommunicate AI-coach) still open, non-blocking. See docs/AUDIO_RECORDING_PLAYBACK_FIX.md."
+  "latestCommit": "pending merge — fix/mobile-pwa-recorded-audio-player-state",
+  "progressPercent": 36,
+  "notes": "BUG-006 fixed: My Voice now has correct Pause/Resume/Stop UI, mutual exclusion, MIME fix for iOS (audio/mp4), auto-TTS fallback on playback failure. Central useRecordedAudioPlayer context added. BUG-002 (Kommunicate AI-coach) still open, non-blocking. See docs/MOBILE_AUDIO_PLAYBACK_NOTES.md."
 }

@@ -3,6 +3,7 @@ import { ADULT_TABS, TEENS_TABS, buildTheme } from "./tokens.js";
 import { buildSchedule } from "./schedule.js";
 import { WorkoutMusicControl } from "./components/audio/WorkoutMusicControl.jsx";
 import { stepsHaveMusicIntent } from "./hooks/useWorkoutBeat.js";
+import { useRecordedAudioPlayer, RecordedAudioPlayerProvider, getBestMimeType } from "./hooks/useRecordedAudioPlayer.jsx";
 
 // ═══════════════════════════════════════════════════════════
 // KARMA33 (formerly Karma28) — Audio-Guided Yoga Practice Engine
@@ -155,8 +156,10 @@ async function idbDelete(key){
   }catch(e){ return false; }
 }
 
-// Play a recorded blob and resolve when finished
-function playBlob(blob,rate){
+// Play a recorded blob and resolve when finished.
+// onFail: optional async-capable callback invoked (and awaited via promise) if
+// audio.play() throws or rejects — use to trigger TTS fallback.
+function playBlob(blob,rate,onFail){
   return new Promise((resolve)=>{
     try{
       const url=URL.createObjectURL(blob);
@@ -164,21 +167,28 @@ function playBlob(blob,rate){
       audio.playbackRate=rate||1;
       let done=false;
       const finish=()=>{ if(!done){done=true;URL.revokeObjectURL(url);resolve();} };
+      const fail=()=>{ if(!done){done=true;URL.revokeObjectURL(url); onFail?Promise.resolve(onFail()).then(resolve):resolve();} };
       audio.onended=finish;
-      audio.onerror=finish;
-      audio.play().catch(finish);
+      audio.onerror=fail;
+      audio.play().catch(fail);
       setTimeout(finish, 120000); // 2-min safety cap
-    }catch(e){ resolve(); }
+    }catch(e){ onFail?Promise.resolve(onFail()).then(resolve):resolve(); }
   });
 }
 
 // Resolve and play a cue: tries recording first, falls back to TTS.
 // cueId: unique string key. fallbackText: spoken if no recording exists.
+// When mode==="recorded": fetches blob, plays it; if play() is blocked
+// (gesture policy, MIME mismatch, etc.) falls back to TTS automatically.
 async function playCue(cueId,fallbackText,opts={}){
   if(opts.mode==="ai") return speakAwait(fallbackText, opts.rate||0.85, opts.pitch||1.0);
   try{
     const blob=await idbGet(cueId);
-    if(blob) return playBlob(blob, (opts.rate||1) * (typeof loadVoiceRate==="function"?loadVoiceRate():1));
+    if(blob){
+      const ttsRate=opts.rate||0.85;
+      const fallback=()=>speakAwait(fallbackText, ttsRate, opts.pitch||1.0);
+      return playBlob(blob, (opts.rate||1) * (typeof loadVoiceRate==="function"?loadVoiceRate():1), fallback);
+    }
   }catch(e){}
   return speakAwait(fallbackText, opts.rate||0.85, opts.pitch||1.0);
 }
@@ -192,12 +202,20 @@ function useMicRecorder(){
   const [state,setState]=useState("idle"); // idle | recording | saved | error
   const mediaRef=useRef(null);
   const chunksRef=useRef([]);
+  // Store the MIME type chosen at record-time so the blob type matches.
+  // audio/webm fails on iOS Safari; getBestMimeType() picks audio/mp4 there.
+  const mimeTypeRef=useRef("");
   function start(){
     navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
-      const mr=new MediaRecorder(stream);
+      const mimeType=getBestMimeType();
+      mimeTypeRef.current=mimeType;
+      const mrOpts=mimeType?{mimeType}:{};
+      let mr;
+      try{ mr=new MediaRecorder(stream,mrOpts); }
+      catch(e){ mr=new MediaRecorder(stream); mimeTypeRef.current=""; }
       chunksRef.current=[];
       mr.ondataavailable=e=>chunksRef.current.push(e.data);
-      mr.onstop=()=>{ stream.getTracks().forEach(t=>t.stop()); };
+      mr.onstop=()=>{ try{stream.getTracks().forEach(t=>t.stop());}catch(e){} };
       mr.start();
       mediaRef.current=mr;
       setState("recording");
@@ -209,7 +227,10 @@ function useMicRecorder(){
       if(!mr){ resolve(false); return; }
       mr.onstop=async()=>{
         try{ mr.stream.getTracks().forEach(t=>t.stop()); }catch(e){}
-        const blob=new Blob(chunksRef.current,{type:"audio/webm"});
+        // Use the MIME type recorded at start(); fall back to mr.mimeType if
+        // the ref wasn't set (e.g. MediaRecorder fell back to browser default).
+        const blobType=mimeTypeRef.current || mr.mimeType || "audio/webm";
+        const blob=new Blob(chunksRef.current,{type:blobType});
         await idbSet(cueId,blob);
         setState("saved");
         resolve(true);
@@ -470,6 +491,26 @@ function SkipButton({onSkip,th}){
   );
 }
 
+// Plays a short silent sound synchronously inside a user-gesture handler to
+// "unlock" HTMLAudioElement for the session on iOS PWA. After this fires,
+// subsequent audio.play() calls from non-gesture code (e.g. useEffect) are
+// permitted by the browser for the rest of the page session.
+function unlockAudioForMobile(){
+  try{
+    // Minimal 44-byte valid WAV (0 audio samples, 8000 Hz, 16-bit mono PCM)
+    const w=new Uint8Array(44);
+    const s=(o,...b)=>b.forEach((v,i)=>{w[o+i]=v;});
+    s(0,82,73,70,70); s(4,36,0,0,0); s(8,87,65,86,69);
+    s(12,102,109,116,32); s(16,16,0,0,0); s(20,1,0); s(22,1,0);
+    s(24,64,31,0,0); s(28,128,62,0,0); s(32,2,0); s(34,16,0);
+    s(36,100,97,116,97); s(40,0,0,0,0);
+    const blob=new Blob([w],{type:"audio/wav"});
+    const url=URL.createObjectURL(blob);
+    const a=new Audio(url);
+    a.play().catch(()=>{}).finally(()=>URL.revokeObjectURL(url));
+  }catch(e){}
+}
+
 // ═══════════════════════════════════════════════════════════
 // SURYA NAMASKAR PLAYER
 // One full round = 24 poses (12 right-leg-lead + 12 left-leg-lead).
@@ -612,7 +653,7 @@ function SuryaPlayer({config,onComplete,onExit,th,testMode,skipSetup,overrideCon
             </div>
           )}
         </div>
-        <button onClick={()=>{ setPhase("mantra"); announceMantra(); }} style={{width:"100%",background:"linear-gradient(135deg,#FF8C00,#D026C8)",border:"none",borderRadius:13,padding:"15px",color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer"}}>🙏 Begin Practice</button>
+        <button onClick={()=>{ unlockAudioForMobile(); setPhase("mantra"); announceMantra(); }} style={{width:"100%",background:"linear-gradient(135deg,#FF8C00,#D026C8)",border:"none",borderRadius:13,padding:"15px",color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer"}}>🙏 Begin Practice</button>
       </div>
     );
   }
@@ -1486,12 +1527,17 @@ function CueRecorderRow({cueId,label,fallbackText,th}){
   const rec=useMicRecorder();
   const [hasRec,setHasRec]=useState(false);
   const [checking,setChecking]=useState(true);
-  const [playErr,setPlayErr]=useState(false);
-  // Pre-cached blob so previewRecorded() stays synchronous.
-  // Mobile browsers require audio.play() in the same call-stack tick as the
-  // click event. Any `await` between click and play() loses the gesture token
-  // and the browser silently blocks playback (NotAllowedError, caught & swallowed).
+  // Pre-cache blob so play() is fully synchronous (no await before audio.play()).
   const audioBlobRef=useRef(null);
+  const player=useRecordedAudioPlayer();
+
+  // Derived UI state for this specific cue
+  const isActive=player.activeCueId===cueId;
+  const isPlaying=isActive && player.status==="playing";
+  const isPaused=isActive && player.status==="paused";
+  const hasError=player.errorCueId===cueId;
+  // Disable this row's play buttons while a different cue is active
+  const otherActive=player.activeCueId!==null && !isActive;
 
   useEffect(()=>{
     let alive=true;
@@ -1499,7 +1545,6 @@ function CueRecorderRow({cueId,label,fallbackText,th}){
     return ()=>{alive=false;};
   },[cueId]);
 
-  // Pre-load blob into ref whenever hasRec flips to true or cueId changes
   useEffect(()=>{
     if(!hasRec){ audioBlobRef.current=null; return; }
     let alive=true;
@@ -1507,26 +1552,31 @@ function CueRecorderRow({cueId,label,fallbackText,th}){
     return ()=>{ alive=false; };
   },[hasRec,cueId]);
 
-  function startRec(){ rec.start(); setPlayErr(false); }
-  async function stopRec(){ await rec.stop(cueId); setHasRec(true); setPlayErr(false); }
-  async function clearRec(){ await idbDelete(cueId); setHasRec(false); audioBlobRef.current=null; setPlayErr(false); }
-  function previewAI(){ speak(fallbackText,0.85); }
-
-  // Fully synchronous — no await before audio.play() — preserves mobile gesture token
-  function previewRecorded(){
-    setPlayErr(false);
-    const blob=audioBlobRef.current;
-    if(!blob){ setPlayErr(true); return; }
-    try{
-      const url=URL.createObjectURL(blob);
-      const audio=new Audio(url);
-      let done=false;
-      const finish=()=>{ if(!done){done=true;URL.revokeObjectURL(url);} };
-      audio.onended=finish;
-      audio.onerror=()=>{ finish(); setPlayErr(true); };
-      audio.play().catch(()=>{ finish(); setPlayErr(true); });
-    }catch(e){ setPlayErr(true); }
+  function startRec(){ player.stop(); rec.start(); }
+  async function stopRec(){ await rec.stop(cueId); setHasRec(true); }
+  async function clearRec(){
+    player.stop();
+    await idbDelete(cueId);
+    setHasRec(false);
+    audioBlobRef.current=null;
   }
+
+  function handlePlayMine(){
+    if(isPlaying){ player.pause(); return; }
+    if(isPaused){ player.resume(); return; }
+    // Synchronous play — blob must already be in ref (loaded by useEffect above).
+    // If the blob hasn't loaded yet, show fallback error.
+    const blob=audioBlobRef.current;
+    player.play(cueId, blob, { onFallback:()=>speak(fallbackText,0.85) });
+  }
+
+  function handlePlayAI(){
+    player.stop();
+    speak(fallbackText,0.85);
+  }
+
+  const btnBase={border:"1px solid rgba(255,255,255,0.16)",color:th.t2,borderRadius:7,padding:"5px 10px",fontSize:10,fontWeight:700,cursor:"pointer"};
+  const btnMuted={opacity:0.38,cursor:"not-allowed"};
 
   return (
     <div data-testid={`cue-recorder-row-${cueId}`} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:10,padding:"10px 12px",marginBottom:7}}>
@@ -1538,11 +1588,38 @@ function CueRecorderRow({cueId,label,fallbackText,th}){
       <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
         {rec.state!=="recording" && <button data-testid={`rec-btn-${cueId}`} onClick={startRec} style={{background:"rgba(255,60,60,0.14)",border:"1px solid rgba(255,60,60,0.28)",color:th.t1,borderRadius:7,padding:"5px 10px",fontSize:10,fontWeight:700,cursor:"pointer"}}>🎙️ Record</button>}
         {rec.state==="recording" && <button data-testid={`stop-btn-${cueId}`} onClick={stopRec} style={{background:"#ff4444",border:"none",color:"#fff",borderRadius:7,padding:"5px 10px",fontSize:10,fontWeight:800,cursor:"pointer"}}>⏹ Stop</button>}
-        {hasRec && <button data-testid={`play-mine-btn-${cueId}`} onClick={previewRecorded} style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.16)",color:th.t2,borderRadius:7,padding:"5px 10px",fontSize:10,fontWeight:700,cursor:"pointer"}}>▶ Play mine</button>}
-        <button data-testid={`play-ai-btn-${cueId}`} onClick={previewAI} style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.16)",color:th.t2,borderRadius:7,padding:"5px 10px",fontSize:10,fontWeight:700,cursor:"pointer"}}>🤖 Play AI</button>
+
+        {/* Play/Pause/Resume/Stop controls for My Voice */}
+        {hasRec && !isPlaying && !isPaused && (
+          <button data-testid={`play-mine-btn-${cueId}`} onClick={handlePlayMine}
+            disabled={otherActive} style={{...btnBase,background:"rgba(255,255,255,0.08)",...(otherActive?btnMuted:{})}}>
+            ▶ Play mine
+          </button>
+        )}
+        {isPlaying && (
+          <>
+            <button data-testid={`pause-mine-btn-${cueId}`} onClick={()=>player.pause()} style={{...btnBase,background:"rgba(255,165,0,0.18)",border:"1px solid rgba(255,165,0,0.35)"}}>⏸ Pause</button>
+            <button data-testid={`stop-mine-btn-${cueId}`} onClick={()=>player.stop()} style={{...btnBase,background:"rgba(255,60,60,0.14)",border:"1px solid rgba(255,60,60,0.28)"}}>⏹ Stop</button>
+          </>
+        )}
+        {isPaused && (
+          <>
+            <button data-testid={`resume-mine-btn-${cueId}`} onClick={()=>player.resume()} style={{...btnBase,background:"rgba(0,200,120,0.18)",border:"1px solid rgba(0,200,120,0.35)"}}>▶ Resume</button>
+            <button data-testid={`stop-mine-btn-${cueId}`} onClick={()=>player.stop()} style={{...btnBase,background:"rgba(255,60,60,0.14)",border:"1px solid rgba(255,60,60,0.28)"}}>⏹ Stop</button>
+          </>
+        )}
+
+        <button data-testid={`play-ai-btn-${cueId}`} onClick={handlePlayAI}
+          disabled={otherActive} style={{...btnBase,background:"rgba(255,255,255,0.08)",...(otherActive?btnMuted:{})}}>
+          🤖 Play AI
+        </button>
         {hasRec && <button data-testid={`clear-btn-${cueId}`} onClick={clearRec} style={{background:"transparent",border:"1px solid rgba(255,100,100,0.30)",color:"#ff8888",borderRadius:7,padding:"5px 10px",fontSize:10,fontWeight:700,cursor:"pointer"}}>✕ Remove</button>}
       </div>
-      {playErr && <div data-testid={`play-err-${cueId}`} style={{fontSize:10,color:"#FF6B6B",marginTop:7,padding:"5px 8px",background:"rgba(255,100,100,0.10)",borderRadius:6,border:"1px solid rgba(255,100,100,0.25)"}}>Recorded audio could not be played. Please re-record or check browser audio permission.</div>}
+      {hasError && (
+        <div data-testid={`play-err-${cueId}`} style={{fontSize:10,color:"#FF6B6B",marginTop:7,padding:"5px 8px",background:"rgba(255,100,100,0.10)",borderRadius:6,border:"1px solid rgba(255,100,100,0.25)"}}>
+          Recorded voice could not play on this device. Falling back to AI voice.
+        </div>
+      )}
     </div>
   );
 }
@@ -2463,7 +2540,7 @@ function DayView({day,tab,th,isTeens,state,setState,completedMap,onDone,onBack,t
   );
 }
 
-export default function Karma28(){
+function Karma28Inner(){
   const [persona,setPersona]=useState("adult");
   const [mode,setMode]=useState("vivid");
   const [tab,setTab]=useState("yoga");
@@ -2633,5 +2710,15 @@ export default function Karma28(){
       </div>
       {cert&&<CertModal day={cert.day} tab={cert.tab} tabCfg={tabCfg} onClose={()=>setCert(null)}/>}
     </div>
+  );
+}
+
+// Wraps the entire app in RecordedAudioPlayerProvider so all CueRecorderRow
+// instances share one centralized audio playback state.
+export default function Karma28(){
+  return (
+    <RecordedAudioPlayerProvider>
+      <Karma28Inner />
+    </RecordedAudioPlayerProvider>
   );
 }

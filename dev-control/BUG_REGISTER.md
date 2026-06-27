@@ -1,6 +1,6 @@
 # Karma33 — Bug Register
 
-Last updated: 2026-06-27
+Last updated: 2026-06-27 (BUG-006 added)
 
 | ID | Title | Status | Severity | Found in | Evidence | Notes |
 |---|---|---|---|---|---|---|
@@ -9,6 +9,7 @@ Last updated: 2026-06-27
 | BUG-003 | Teens → Moves workout shows "Play pump-up song 🎵" with no music playback control | ✅ Closed | Medium | `src/App.jsx` `ExCard` component + `TE.T1` workout data | Fixed on `feature/teens-workout-music-player`: added `WorkoutMusicControl` component (`src/components/audio/WorkoutMusicControl.jsx`) and `useWorkoutBeat` hook (`src/hooks/useWorkoutBeat.js`). Music control appears when any step contains music intent (🎵, "pump-up song", "Music + movement"). 37/37 tests pass; build green; onboarding validation `allPassed: true`. |
 | BUG-004 | Sudarshan Kriya "During Kriya: Music" setting shows label but plays no audio | ✅ Closed | Medium | `src/App.jsx` `SudarshanKriyaPlayer` (line ~982), `DEFAULT_PRACTICE_CONFIG.kriya.duringKriyaAudio` | Fixed on `feature/kriya-music-player`: wired `useWorkoutBeat(60)` into `SudarshanKriyaPlayer`; Play/Pause/Stop controls appear on kriya-intro screen; compact music badge shown during all 9 breathing steps. Music stops on savasana/done/unmount. 43/43 tests pass; build green; onboarding `allPassed: true`. |
 | BUG-005 | Surya Namaskar "My Voice" recordings saved but Play Mine produces no audio | ✅ Closed | High | `src/App.jsx` `CueRecorderRow.previewRecorded` | Root cause: `async function previewRecorded(){ await idbGet(cueId); ... }` broke mobile browser user-gesture token before `audio.play()`. Fixed on `fix/surya-my-voice-playback`: added `audioBlobRef=useRef(null)`, pre-load effect, and synchronous `previewRecorded()` that calls `audio.play()` in the same tick as the click. Added `playErr` state + error banner. 51/51 tests; build green; onboarding `allPassed: true`. See `docs/AUDIO_RECORDING_PLAYBACK_FIX.md`. |
+| BUG-006 | My Voice fails on mobile PWA; Play button has no UI state (no Pause/Stop); duplicate overlapping playback | ✅ Closed | High | `src/App.jsx` `CueRecorderRow`, `useMicRecorder`, `CueRecorderRow.previewRecorded` | 4 root causes: (1) `audio/webm` MIME unsupported on iOS — fixed by `getBestMimeType()` selecting `audio/mp4` on iOS; (2) Audio element was a local variable — fixed by central `useRecordedAudioPlayer` context; (3) No mutual exclusion across rows — fixed by shared `activeCueId` in context; (4) No Pause/Resume/Stop UI — added via context. `playBlob` + `playCue` now auto-fallback to TTS if play() fails. 68/68 tests; build green; onboarding `allPassed: true`. See `docs/MOBILE_AUDIO_PLAYBACK_NOTES.md`. |
 
 ## Evidence requirement
 

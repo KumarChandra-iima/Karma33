@@ -69,13 +69,32 @@ Added in-app beat/music control for Teens → Boss Moves workouts.
 - **Tests:** 37/37 pass (vitest). Build: green. Onboarding flow: `allPassed: true` (Playwright).
 - **Design:** reusable by Adult IdealWeight via `accentColor` + `th` props.
 
+## BUG-006: Mobile PWA recorded audio — MIME fix, Pause/Resume/Stop UI, mutual exclusion (2026-06-27)
+
+**Branch:** `fix/mobile-pwa-recorded-audio-player-state`
+
+- **Root causes fixed:** (1) `audio/webm` unsupported on iOS → fixed with `getBestMimeType()` selecting `audio/mp4` on iOS; (2) Audio element was local var, no state → central `useRecordedAudioPlayer` context; (3) No mutual exclusion → shared `activeCueId`; (4) No Pause/Resume/Stop → full UI state.
+- **New files:** `src/hooks/useRecordedAudioPlayer.jsx`, `src/test/mobileAudioPlayer.test.jsx`, `docs/MOBILE_AUDIO_PLAYBACK_NOTES.md`
+- **Modified:** `src/App.jsx` — `useMicRecorder` MIME detection, `playBlob` + `playCue` TTS fallback, `CueRecorderRow` full player UI, audio unlock helper, `Karma28` wrapped in `RecordedAudioPlayerProvider`
+- **Tests:** 68/68 pass (vitest). Build: green. Onboarding: `allPassed: true`.
+- **Manual mobile QA required** — see `docs/MOBILE_AUDIO_PLAYBACK_NOTES.md` checklist.
+
+## BUG-005: Surya Namaskar My Voice playback — async gesture token fix (2026-06-27)
+
+**Branch:** `fix/surya-my-voice-playback` (merged to main)
+
+- Fixed `async function previewRecorded()` that broke mobile gesture token before `audio.play()`.
+- Pre-cached blob in `audioBlobRef` (useRef), synchronous play handler.
+- Added `playErr` state + visible error banner.
+- Tests: 51/51 pass; build green; onboarding `allPassed: true`.
+
 ## Open Bugs
 
 - BUG-002: Kommunicate AI-coach fetch (non-blocking) — tracked, no fix yet.
 
 ## Next Action
 
-Merge `feature/teens-workout-music-player` to `main` and push.
+Merge `fix/mobile-pwa-recorded-audio-player-state` to `main` and push. Manual mobile QA by Kumar.
 
 ## Foundation batch (2026-06-21, branch `feature/qa-scaffold-vitest`)
 
