@@ -1,6 +1,6 @@
 # Karma33 — Bug Register
 
-Last updated: 2026-06-27 (updated same day)
+Last updated: 2026-06-27
 
 | ID | Title | Status | Severity | Found in | Evidence | Notes |
 |---|---|---|---|---|---|---|
@@ -8,6 +8,7 @@ Last updated: 2026-06-27 (updated same day)
 | BUG-002 | "Analyze with AI Coach" (Kommunicate) always fails | 🟡 Open | Low (non-blocking, feature degrades gracefully) | `src/App.jsx` (~line 2176, `analyze()` in the Kommunicate audio/feedback component) | Client-side `fetch("https://api.anthropic.com/v1/messages", ...)` has no API key/auth header; will always fail CORS/auth and falls into the existing catch handler showing "Analysis unavailable. Keep practicing!" | No secret exposure confirmed (no key present in the code). Real fix needs a server-side proxy endpoint — tracked for Stream C (Backend) per `docs/FEATURE_MATRIX.md` §3. Not fixed as part of the Vercel scaffold fix (out of scope). |
 | BUG-003 | Teens → Moves workout shows "Play pump-up song 🎵" with no music playback control | ✅ Closed | Medium | `src/App.jsx` `ExCard` component + `TE.T1` workout data | Fixed on `feature/teens-workout-music-player`: added `WorkoutMusicControl` component (`src/components/audio/WorkoutMusicControl.jsx`) and `useWorkoutBeat` hook (`src/hooks/useWorkoutBeat.js`). Music control appears when any step contains music intent (🎵, "pump-up song", "Music + movement"). 37/37 tests pass; build green; onboarding validation `allPassed: true`. |
 | BUG-004 | Sudarshan Kriya "During Kriya: Music" setting shows label but plays no audio | ✅ Closed | Medium | `src/App.jsx` `SudarshanKriyaPlayer` (line ~982), `DEFAULT_PRACTICE_CONFIG.kriya.duringKriyaAudio` | Fixed on `feature/kriya-music-player`: wired `useWorkoutBeat(60)` into `SudarshanKriyaPlayer`; Play/Pause/Stop controls appear on kriya-intro screen; compact music badge shown during all 9 breathing steps. Music stops on savasana/done/unmount. 43/43 tests pass; build green; onboarding `allPassed: true`. |
+| BUG-005 | Surya Namaskar "My Voice" recordings saved but Play Mine produces no audio | ✅ Closed | High | `src/App.jsx` `CueRecorderRow.previewRecorded` | Root cause: `async function previewRecorded(){ await idbGet(cueId); ... }` broke mobile browser user-gesture token before `audio.play()`. Fixed on `fix/surya-my-voice-playback`: added `audioBlobRef=useRef(null)`, pre-load effect, and synchronous `previewRecorded()` that calls `audio.play()` in the same tick as the click. Added `playErr` state + error banner. 51/51 tests; build green; onboarding `allPassed: true`. See `docs/AUDIO_RECORDING_PLAYBACK_FIX.md`. |
 
 ## Evidence requirement
 
