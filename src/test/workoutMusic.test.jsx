@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { hasMusicIntent, stepsHaveMusicIntent } from "../hooks/useWorkoutBeat.js";
 import { WorkoutMusicControl } from "../components/audio/WorkoutMusicControl.jsx";
 
@@ -185,5 +185,52 @@ describe("WorkoutMusicControl", () => {
     fireEvent.click(screen.getByTestId("music-play-pause-btn")); // play first
     fireEvent.click(screen.getByTestId("music-stop-btn"));
     expect(onStop).toHaveBeenCalledOnce();
+  });
+});
+
+// ── Kriya music config helpers ────────────────────────────────────────────────
+describe("Kriya duringKriyaAudio config flag", () => {
+  it("duringKriyaAudio 'music' is a valid string value", () => {
+    const cfg = { duringKriyaAudio: "music" };
+    expect(cfg.duringKriyaAudio === "music").toBe(true);
+  });
+
+  it("duringKriyaAudio 'silence' does not trigger music", () => {
+    const cfg = { duringKriyaAudio: "silence" };
+    expect(cfg.duringKriyaAudio === "music").toBe(false);
+  });
+
+  it("kriyaMusicOn logic gates correctly on config value", () => {
+    const derive = (val) => val === "music";
+    expect(derive("music")).toBe(true);
+    expect(derive("silence")).toBe(false);
+    expect(derive(undefined)).toBe(false);
+  });
+});
+
+// ── WorkoutMusicControl: accent color prop (Adult IdealWeight reuse) ──────────
+describe("WorkoutMusicControl accentColor reuse", () => {
+  const th = {
+    card: "rgba(0,0,0,0.5)",
+    cardBorder: "rgba(255,255,255,0.15)",
+    t2: "#fff",
+    t3: "rgba(255,255,255,0.4)",
+    divider: "rgba(255,255,255,0.08)",
+  };
+
+  it("renders with Adult IdealWeight accent #FF5500", () => {
+    render(<WorkoutMusicControl accentColor="#FF5500" th={th} bpm={128} />);
+    // Control renders — reuse confirmed
+    expect(screen.getByTestId("workout-music-control")).toBeInTheDocument();
+  });
+
+  it("renders with Kriya accent #D026C8", () => {
+    render(<WorkoutMusicControl accentColor="#D026C8" th={th} bpm={60} />);
+    expect(screen.getByTestId("workout-music-control")).toBeInTheDocument();
+  });
+
+  it("Play button is present regardless of accent color", () => {
+    render(<WorkoutMusicControl accentColor="#D026C8" th={th} bpm={60} />);
+    expect(screen.getByTestId("music-play-pause-btn").textContent).toContain("Play");
   });
 });

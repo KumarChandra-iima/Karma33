@@ -1,14 +1,14 @@
 {
   "lastUpdated": "2026-06-27",
   "currentPhase": "Phase 5/6 - feature work in progress",
-  "activeStream": "Stream A (UI) — Teens workout music control",
+  "activeStream": "Stream A (UI) — Music audio layer complete",
   "activeAgent": "Claude Code (with Ollama/qwen2.5-coder first-pass analysis)",
   "openBugs": 1,
-  "fixedBugs": 2,
-  "testStatus": "37/37 automated unit+component tests passing (vitest); onboarding flow validated (Playwright allPassed: true)",
-  "buildStatus": "green (npm run build: 34 modules, 381ms, no errors)",
+  "fixedBugs": 3,
+  "testStatus": "43/43 automated unit+component tests passing (vitest); onboarding flow validated (Playwright allPassed: true)",
+  "buildStatus": "green (npm run build: 34 modules, 362ms, no errors)",
   "escalations": 0,
-  "latestCommit": "pending — feature/teens-workout-music-player, pre-merge",
-  "progressPercent": 27,
-  "notes": "BUG-003 fixed: Teens → Moves workout now shows WorkoutMusicControl when any step contains music intent (🎵, pump-up song, Music + movement). Web Audio beat loop, no external assets, no autoplay. Reusable by Adult IdealWeight via accentColor prop. BUG-002 (Kommunicate AI-coach fetch) still open, non-blocking."
+  "latestCommit": "pending merge — feature/kriya-music-player",
+  "progressPercent": 30,
+  "notes": "BUG-003 fixed: Teens → Moves WorkoutMusicControl (Web Audio beat loop). BUG-004 fixed: Sudarshan Kriya 'During Kriya: Music' setting now wired to useWorkoutBeat(60); Play/Pause/Stop on kriya-intro, compact badge during 9 breathing steps. BUG-002 (Kommunicate AI-coach fetch) still open, non-blocking. Music infra reusable across all practices via useWorkoutBeat hook."
 }

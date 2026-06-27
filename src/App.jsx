@@ -807,6 +807,16 @@ function SudarshanKriyaPlayer({config,onComplete,onExit,th,testMode,skipSetup,ov
   const step=STEPS[stepIdx];
   const lockTimerRef=useRef(null);
 
+  // Ambient music during main Kriya (opt-in via Practice Settings)
+  const kriyaMusicOn=cfg.duringKriyaAudio==="music";
+  const {playState:musicState,play:musicPlay,pause:musicPause,resume:musicResume,stop:musicStop}=useWorkoutBeat(60);
+  const KRIYA_STEPS=["kriya-slow1","kriya-medium1","kriya-fast1","kriya-slow2","kriya-medium2","kriya-fast2","kriya-slow3","kriya-medium3","kriya-fast3"];
+  // Stop music when practice ends or enters savasana
+  useEffect(()=>{
+    if(step==="done"||step==="savasana") musicStop();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[step]);
+
   function next(){ setStepIdx(i=>Math.min(i+1,STEPS.length-1)); }
   function skipTo(stepName){ setStepIdx(STEPS.indexOf(stepName)); }
 
@@ -979,7 +989,22 @@ function SudarshanKriyaPlayer({config,onComplete,onExit,th,testMode,skipSetup,ov
         <div style={{padding:"30px 20px"}}>
           <div style={{fontSize:46,marginBottom:10}}>🌬️</div>
           <div style={{fontSize:13,color:th.t2,lineHeight:1.7,marginBottom:14}}>3 rounds of {cfg.slowBreaths} slow + {cfg.mediumBreaths} medium + {cfg.fastBreaths} fast breaths — paced to fit {duration} minutes.</div>
-          {cfg.duringKriyaAudio==="music" && <div style={{fontSize:11,color:th.t3,marginBottom:14}}>🎵 Ambient music will play softly throughout</div>}
+          {kriyaMusicOn&&(
+            <div data-testid="kriya-music-control" style={{background:th.card,border:`1px solid ${th.cardBorder}`,borderRadius:11,padding:"12px 14px",marginBottom:14,textAlign:"left"}}>
+              <div style={{fontSize:10,fontWeight:800,color:"#D026C8",marginBottom:8,letterSpacing:0.5}}>🎵 AMBIENT MUSIC DURING KRIYA</div>
+              <div style={{display:"flex",gap:7}}>
+                <button data-testid="kriya-music-play-btn" onClick={musicState==="playing"?musicPause:musicState==="paused"?musicResume:musicPlay}
+                  style={{flex:2,background:musicState==="playing"?"rgba(208,38,200,0.18)":"linear-gradient(135deg,#D026C8,#7C3AED)",border:musicState==="playing"?"1px solid #D026C855":"none",borderRadius:9,padding:"9px 10px",color:"#fff",fontWeight:800,fontSize:12,cursor:"pointer"}}>
+                  {musicState==="stopped"?"▶ Start Music":musicState==="playing"?"⏸ Pause":"▶ Resume"}
+                </button>
+                <button data-testid="kriya-music-stop-btn" onClick={musicStop} disabled={musicState==="stopped"}
+                  style={{flex:1,background:"rgba(255,80,80,0.12)",border:"1px solid rgba(255,80,80,0.25)",borderRadius:9,padding:"9px 10px",color:musicState==="stopped"?"rgba(255,255,255,0.3)":"#FF6B6B",fontWeight:800,fontSize:12,cursor:"pointer",opacity:musicState==="stopped"?0.5:1}}>
+                  ■ Stop
+                </button>
+              </div>
+              <div style={{fontSize:9,color:th.t3,marginTop:7}}>Tap Start Music, then Begin Practice — music continues through all breathing rounds.</div>
+            </div>
+          )}
           <button onClick={next} style={{background:"linear-gradient(135deg,#D026C8,#7C3AED)",border:"none",borderRadius:12,padding:"12px 28px",color:"#fff",fontWeight:900,fontSize:14,cursor:"pointer"}}>Begin Main Kriya</button>
         </div>
       </div>
@@ -995,6 +1020,14 @@ function SudarshanKriyaPlayer({config,onComplete,onExit,th,testMode,skipSetup,ov
     return (
       <div style={{paddingBottom:30}}>
         <SessionHeader title="Sudarshan Kriya" subtitle={`Round ${roundN} of ${cfg.kriyaRoundsCount} — ${speedName.toUpperCase()} breaths${subSuffix}`} onExit={onExit} th={th}/>
+        {kriyaMusicOn&&musicState!=="stopped"&&(
+          <div data-testid="kriya-music-badge" style={{display:"flex",alignItems:"center",gap:8,background:"rgba(208,38,200,0.10)",border:"1px solid rgba(208,38,200,0.25)",borderRadius:8,padding:"6px 12px",marginBottom:10}}>
+            <span style={{fontSize:13}}>🎵</span>
+            <span style={{flex:1,fontSize:10,fontWeight:800,color:"#D026C8"}}>{musicState==="playing"?"Music playing":"Music paused"}</span>
+            <button data-testid="kriya-music-breathe-toggle" onClick={musicState==="playing"?musicPause:musicResume} style={{background:"none",border:"1px solid rgba(208,38,200,0.35)",borderRadius:6,padding:"3px 9px",color:"#D026C8",fontWeight:800,fontSize:11,cursor:"pointer"}}>{musicState==="playing"?"⏸":"▶"}</button>
+            <button data-testid="kriya-music-breathe-stop" onClick={musicStop} style={{background:"none",border:"1px solid rgba(255,80,80,0.30)",borderRadius:6,padding:"3px 9px",color:"#FF6B6B",fontWeight:800,fontSize:11,cursor:"pointer"}}>■</button>
+          </div>
+        )}
         <CountedBreathing targetCount={targetCount} bpm={bpm} label={speedName.toUpperCase()} sublabel="breaths" onDone={next} th={th} color={color} testMode={testMode}/>
       </div>
     );
