@@ -1,14 +1,14 @@
 {
-  "lastUpdated": "2026-06-21",
-  "currentPhase": "Phase 5/6 - module development in progress",
-  "activeStream": "Stream A / B foundation work",
-  "activeAgent": "Claude Code",
+  "lastUpdated": "2026-06-27",
+  "currentPhase": "Phase 5/6 - feature work in progress",
+  "activeStream": "Stream A (UI) — Teens workout music control",
+  "activeAgent": "Claude Code (with Ollama/qwen2.5-coder first-pass analysis)",
   "openBugs": 1,
-  "fixedBugs": 1,
-  "testStatus": "7/7 automated unit tests passing (vitest); manual QA cases tracked in qa/TEST_CASES.md, mostly not yet executed",
-  "buildStatus": "green (npm run build + npm test both pass on feature/qa-scaffold-vitest)",
+  "fixedBugs": 2,
+  "testStatus": "37/37 automated unit+component tests passing (vitest); onboarding flow validated (Playwright allPassed: true)",
+  "buildStatus": "green (npm run build: 34 modules, 381ms, no errors)",
   "escalations": 0,
-  "latestCommit": "a6863fd (on feature/qa-scaffold-vitest, not yet merged to main)",
-  "progressPercent": 22,
-  "notes": "Foundation batch complete on feature/qa-scaffold-vitest: storage key migration, design token extraction, PWA service worker + icons, Vitest/QA scaffold. Awaiting Kumar's go-ahead to merge to main. karma28-vercel/ duplicate removal still blocked pending confirmation. Supabase/AI-coaching/payments/Capacitor not started - blocked on credentials or explicitly deferred."
+  "latestCommit": "pending — feature/teens-workout-music-player, pre-merge",
+  "progressPercent": 27,
+  "notes": "BUG-003 fixed: Teens → Moves workout now shows WorkoutMusicControl when any step contains music intent (🎵, pump-up song, Music + movement). Web Audio beat loop, no external assets, no autoplay. Reusable by Adult IdealWeight via accentColor prop. BUG-002 (Kommunicate AI-coach fetch) still open, non-blocking."
 }
